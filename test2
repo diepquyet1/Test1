@@ -1,0 +1,37 @@
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+import os
+
+# Replace with your bot's token
+TELEGRAM_TOKEN = 'your_bot_token'
+
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text("Hello! Send me a file, and I'll download it.")
+
+def download_file(update: Update, context: CallbackContext):
+    file = update.message.document
+    if file:
+        file_id = file.file_id
+        new_file = context.bot.get_file(file_id)
+        file_name = file.file_name
+        new_file.download(f'./{file_name}')
+        update.message.reply_text(f"File '{file_name}' downloaded successfully!")
+    else:
+        update.message.reply_text("No file received.")
+
+def main():
+    updater = Updater(TELEGRAM_TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    # Command handler for /start
+    dp.add_handler(CommandHandler("start", start))
+
+    # Message handler for file uploads
+    dp.add_handler(MessageHandler(Filters.document, download_file))
+
+    # Start polling
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
